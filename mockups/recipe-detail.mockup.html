@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mise — Recipe Detail</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #E8E2D9;
+      font-family: 'Inter', -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
+      gap: 40px;
+    }
+
+    /* ── Phone frame ─────────────────────────────────────── */
+    .phone {
+      width: 390px;
+      min-height: 844px;
+      background: #FFFFFF;
+      border-radius: 48px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      border: 8px solid #1A1412;
+    }
+
+    /* ── Status bar ──────────────────────────────────────── */
+    .status-bar {
+      background: transparent;
+      padding: 14px 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 10;
+    }
+    .status-time { font-size: 15px; font-weight: 700; color: #F2EDE5; }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+
+    /* ── Hero image ──────────────────────────────────────── */
+    .hero {
+      height: 260px;
+      background: #AACC96;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 80px;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .hero-back {
+      position: absolute;
+      top: 52px;
+      left: 20px;
+      width: 36px;
+      height: 36px;
+      background: rgba(0,0,0,0.25);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .hero-actions {
+      position: absolute;
+      top: 52px;
+      right: 20px;
+      display: flex;
+      gap: 8px;
+    }
+    .hero-action-btn {
+      width: 36px;
+      height: 36px;
+      background: rgba(0,0,0,0.25);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* ── Scrollable content ──────────────────────────────── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: none;
+      background: #FFFFFF;
+    }
+    .content::-webkit-scrollbar { display: none; }
+
+    /* ── Recipe header ───────────────────────────────────── */
+    .recipe-header {
+      padding: 22px 20px 0;
+    }
+    .recipe-name {
+      font-family: 'Lora', serif;
+      font-size: 26px;
+      font-weight: 400;
+      color: #2A1F1A;
+      line-height: 1.25;
+      margin-bottom: 10px;
+    }
+    .meta-row {
+      display: flex;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 13px;
+      color: #7A6A5F;
+    }
+    .tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .source-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+    .source-link {
+      font-size: 12px;
+      color: #6D1F42;
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 400;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    /* ── Divider ─────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: #DDD5C8;
+      margin: 0 20px;
+    }
+
+    /* ── Section ─────────────────────────────────────────── */
+    .section {
+      padding: 20px 20px 0;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #7A6A5F;
+      margin-bottom: 14px;
+    }
+
+    /* ── Ingredients ─────────────────────────────────────── */
+    .ingredient-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-bottom: 24px;
+    }
+    .ingredient-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 0;
+      border-bottom: 1px solid #EAE4DC;
+    }
+    .ingredient-row:last-child { border-bottom: none; }
+    .ingredient-name {
+      font-size: 14px;
+      color: #2A1F1A;
+    }
+    .ingredient-qty {
+      font-size: 13px;
+      color: #7A6A5F;
+      font-weight: 500;
+    }
+
+    /* ── Notes ───────────────────────────────────────────── */
+    .note-card {
+      background: #F2EDE5;
+      border-radius: 14px;
+      padding: 13px 15px;
+      margin-bottom: 10px;
+    }
+    .note-text {
+      font-size: 14px;
+      color: #2A1F1A;
+      line-height: 1.5;
+    }
+    .note-date {
+      font-size: 11px;
+      color: #B5A89C;
+      margin-top: 6px;
+    }
+    .add-note-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 0;
+      cursor: pointer;
+      font-size: 12px;
+      color: #B5A89C;
+      margin-bottom: 24px;
+      background: none;
+      border: none;
+    }
+
+    /* ── Steps ───────────────────────────────────────────── */
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-bottom: 120px;
+    }
+    .step-row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: #2A1F1A;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-text {
+      font-size: 14px;
+      color: #2A1F1A;
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    /* ── Start cooking CTA (sticky) ──────────────────────── */
+    .cta-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, #FFFFFF 70%, transparent);
+      padding: 20px 20px 32px;
+      flex-shrink: 0;
+    }
+    .cta-btn {
+      width: 100%;
+      background: #6D1F42;
+      color: #F2EDE5;
+      border: none;
+      border-radius: 999px;
+      padding: 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- State 1: Top of recipe (photo + header + ingredients) -->
+<div class="phone">
+
+  <!-- Status bar (over hero) -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="#F2EDE5">
+        <rect x="0" y="8" width="3" height="4" rx="1"/>
+        <rect x="4.5" y="5" width="3" height="7" rx="1"/>
+        <rect x="9" y="2" width="3" height="10" rx="1"/>
+        <rect x="13.5" y="0" width="3" height="12" rx="1" opacity="0.4"/>
+      </svg>
+      <svg width="16" height="12" viewBox="0 0 24 18" fill="none" stroke="#F2EDE5" stroke-width="2.2" stroke-linecap="round">
+        <path d="M1 6C5 2 10 0 12 0s7 2 11 6" opacity="0.4"/>
+        <path d="M4 10c2-2 5-3.5 8-3.5s6 1.5 8 3.5"/>
+        <path d="M7.5 14c1.2-1.2 2.8-2 4.5-2s3.3.8 4.5 2"/>
+        <circle cx="12" cy="17" r="1.5" fill="#F2EDE5"/>
+      </svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+        <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#F2EDE5" stroke-width="1.2"/>
+        <rect x="2" y="2" width="16" height="8" rx="2" fill="#F2EDE5"/>
+        <path d="M23 4v4" stroke="#F2EDE5" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Hero image -->
+  <div class="hero">
+    🍝
+    <div class="hero-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F2EDE5" stroke-width="2.5" stroke-linecap="round"><polyline points="15,18 9,12 15,6"/></svg>
+    </div>
+    <div class="hero-actions">
+      <div class="hero-action-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F2EDE5" stroke-width="2" stroke-linecap="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+      </div>
+      <div class="hero-action-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F2EDE5" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scrollable content -->
+  <div class="content">
+
+    <!-- Recipe header -->
+    <div class="recipe-header">
+      <p class="recipe-name">Pasta al Limone</p>
+      <div class="meta-row">
+        <div class="meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7A6A5F" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          30 min
+        </div>
+        <div class="meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7A6A5F" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          2 servings
+        </div>
+      </div>
+      <div class="tags-row">
+        <span class="tag" style="background:#B8CEE8;color:#1A3D5C">Italian</span>
+        <span class="tag" style="background:#AACC96;color:#1A3D20">Vegetarian</span>
+        <span class="tag" style="background:#EFCE7B;color:#6B4A0A">Quick</span>
+      </div>
+      <!-- Source (imported from link) -->
+      <div class="source-row">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6D1F42" stroke-width="2.2" stroke-linecap="round">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+        <span class="source-link">nytcooking.com</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Ingredients -->
+    <div class="section">
+      <p class="section-title">Ingredients</p>
+      <div class="ingredient-list">
+        <div class="ingredient-row">
+          <span class="ingredient-name">Spaghetti</span>
+          <span class="ingredient-qty">200g</span>
+        </div>
+        <div class="ingredient-row">
+          <span class="ingredient-name">Lemon</span>
+          <span class="ingredient-qty">1, zested + juiced</span>
+        </div>
+        <div class="ingredient-row">
+          <span class="ingredient-name">Parmesan</span>
+          <span class="ingredient-qty">60g, finely grated</span>
+        </div>
+        <div class="ingredient-row">
+          <span class="ingredient-name">Butter</span>
+          <span class="ingredient-qty">2 tbsp</span>
+        </div>
+        <div class="ingredient-row">
+          <span class="ingredient-name">Garlic</span>
+          <span class="ingredient-qty">1 clove</span>
+        </div>
+        <div class="ingredient-row">
+          <span class="ingredient-name">Black pepper</span>
+          <span class="ingredient-qty">to taste</span>
+        </div>
+        <div class="ingredient-row">
+          <span class="ingredient-name">Salt</span>
+          <span class="ingredient-qty">to taste</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Notes -->
+    <div class="section" style="padding-bottom:120px">
+      <p class="section-title">Notes</p>
+      <div class="note-card">
+        <p class="note-text">Add more lemon zest next time. A pinch of chilli flakes works really well too.</p>
+        <p class="note-date">Feb 18</p>
+      </div>
+      <div class="add-note-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B5A89C" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add a note
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Start cooking CTA -->
+  <div class="cta-bar">
+    <button class="cta-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2EDE5" stroke-width="2.5" stroke-linecap="round"><polygon points="5,3 19,12 5,21"/></svg>
+      Start cooking
+    </button>
+  </div>
+
+</div>
+
+
+<!-- State 2: Scrolled down to steps -->
+<div class="phone">
+
+  <!-- Status bar -->
+  <div class="status-bar" style="position:relative;background:#FFFFFF;">
+    <span class="status-time" style="color:#2A1F1A">9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="#2A1F1A">
+        <rect x="0" y="8" width="3" height="4" rx="1"/>
+        <rect x="4.5" y="5" width="3" height="7" rx="1"/>
+        <rect x="9" y="2" width="3" height="10" rx="1"/>
+        <rect x="13.5" y="0" width="3" height="12" rx="1" opacity="0.3"/>
+      </svg>
+      <svg width="16" height="12" viewBox="0 0 24 18" fill="none" stroke="#2A1F1A" stroke-width="2.2" stroke-linecap="round">
+        <path d="M1 6C5 2 10 0 12 0s7 2 11 6" opacity="0.3"/>
+        <path d="M4 10c2-2 5-3.5 8-3.5s6 1.5 8 3.5"/>
+        <path d="M7.5 14c1.2-1.2 2.8-2 4.5-2s3.3.8 4.5 2"/>
+        <circle cx="12" cy="17" r="1.5" fill="#2A1F1A"/>
+      </svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+        <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#2A1F1A" stroke-width="1.2"/>
+        <rect x="2" y="2" width="16" height="8" rx="2" fill="#2A1F1A"/>
+        <path d="M23 4v4" stroke="#2A1F1A" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Collapsed header bar -->
+  <div style="display:flex;align-items:center;gap:12px;padding:10px 20px 14px;background:#FFFFFF;border-bottom:1px solid #EAE4DC;flex-shrink:0">
+    <div style="width:32px;height:32px;border-radius:999px;border:1.5px solid #DDD5C8;display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7A6A5F" stroke-width="2.5" stroke-linecap="round"><polyline points="15,18 9,12 15,6"/></svg>
+    </div>
+    <p style="font-family:'Lora',serif;font-size:17px;font-weight:400;color:#2A1F1A;flex:1">Pasta al Limone</p>
+    <div style="display:flex;gap:8px">
+      <div style="width:32px;height:32px;border-radius:999px;border:1.5px solid #DDD5C8;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7A6A5F" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      </div>
+      <div style="width:32px;height:32px;border-radius:999px;border:1.5px solid #DDD5C8;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7A6A5F" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content: steps view -->
+  <div class="content">
+    <div class="section" style="padding-top:20px;padding-bottom:120px">
+      <p class="section-title">Steps</p>
+      <div class="step-list" style="padding-bottom:0">
+
+        <div class="step-row">
+          <div class="step-num">1</div>
+          <p class="step-text">Bring a large pot of well-salted water to a boil. Cook the spaghetti until al dente, reserving 1 cup of pasta water before draining.</p>
+        </div>
+
+        <div class="step-row">
+          <div class="step-num">2</div>
+          <p class="step-text">While the pasta cooks, zest the lemon and finely grate the parmesan. Mince the garlic clove.</p>
+        </div>
+
+        <div class="step-row">
+          <div class="step-num">3</div>
+          <p class="step-text">Melt butter in a wide pan over medium heat. Add garlic and cook for 1 minute until fragrant but not browned.</p>
+        </div>
+
+        <div class="step-row">
+          <div class="step-num">4</div>
+          <p class="step-text">Add the drained pasta to the pan. Pour in the lemon juice and a splash of pasta water. Toss to combine.</p>
+        </div>
+
+        <div class="step-row">
+          <div class="step-num">5</div>
+          <p class="step-text">Remove from heat. Add parmesan and lemon zest, tossing vigorously until the sauce is creamy. Add more pasta water as needed.</p>
+        </div>
+
+        <div class="step-row">
+          <div class="step-num">6</div>
+          <p class="step-text">Season generously with black pepper and serve immediately.</p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Start cooking CTA -->
+  <div class="cta-bar">
+    <button class="cta-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2EDE5" stroke-width="2.5" stroke-linecap="round"><polygon points="5,3 19,12 5,21"/></svg>
+      Start cooking
+    </button>
+  </div>
+
+</div>
+
+</body>
+</html>

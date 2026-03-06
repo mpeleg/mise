@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mise — Add Recipe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #E8E2D9;
+      font-family: 'Inter', -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 40px 20px;
+      gap: 40px;
+    }
+
+    /* ── Phone frame ─────────────────────────────────────── */
+    .phone {
+      width: 390px;
+      min-height: 844px;
+      background: #FFFFFF;
+      border-radius: 48px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      border: 8px solid #1A1412;
+    }
+
+    /* ── Status bar ──────────────────────────────────────── */
+    .status-bar {
+      background: #FFFFFF;
+      padding: 14px 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .status-time { font-size: 15px; font-weight: 700; color: #2A1F1A; }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+
+    /* ── Screen top bar ──────────────────────────────────── */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px 0;
+      flex-shrink: 0;
+    }
+    .top-bar-title {
+      font-family: 'Lora', serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: #2A1F1A;
+    }
+    /* ── Content ─────────────────────────────────────────── */
+    .content {
+      flex: 1;
+      padding: 20px 20px 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #7A6A5F;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    /* ── Option cards ─────────────────────────────────────── */
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .option-card {
+      background: #F2EDE5;
+      border-radius: 20px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+    }
+    .option-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 20px;
+    }
+    .option-text { flex: 1; min-width: 0; }
+    .option-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: #2A1F1A;
+      margin-bottom: 2px;
+    }
+    .option-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: #7A6A5F;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .option-arrow {
+      color: #DDD5C8;
+      flex-shrink: 0;
+    }
+
+    /* ── Bottom nav ──────────────────────────────────────── */
+    .bottom-nav {
+      background: #F2EDE5;
+      border-top: 1.5px solid #EAE4DC;
+      padding: 12px 32px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .nav-label {
+      font-size: 10px;
+      font-weight: 500;
+      color: #B5A89C;
+    }
+    .nav-label.active {
+      font-weight: 700;
+      color: #6D1F42;
+    }
+  </style>
+</head>
+<body>
+
+<!-- State 1: Choose method -->
+<div class="phone">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="#2A1F1A">
+        <rect x="0" y="8" width="3" height="4" rx="1"/>
+        <rect x="4.5" y="5" width="3" height="7" rx="1"/>
+        <rect x="9" y="2" width="3" height="10" rx="1"/>
+        <rect x="13.5" y="0" width="3" height="12" rx="1" opacity="0.3"/>
+      </svg>
+      <svg width="16" height="12" viewBox="0 0 24 18" fill="none" stroke="#2A1F1A" stroke-width="2.2" stroke-linecap="round">
+        <path d="M1 6C5 2 10 0 12 0s7 2 11 6" opacity="0.3"/>
+        <path d="M4 10c2-2 5-3.5 8-3.5s6 1.5 8 3.5"/>
+        <path d="M7.5 14c1.2-1.2 2.8-2 4.5-2s3.3.8 4.5 2"/>
+        <circle cx="12" cy="17" r="1.5" fill="#2A1F1A"/>
+      </svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+        <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#2A1F1A" stroke-width="1.2"/>
+        <rect x="2" y="2" width="16" height="8" rx="2" fill="#2A1F1A"/>
+        <path d="M23 4v4" stroke="#2A1F1A" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <span class="top-bar-title">Add a recipe</span>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <p class="subtitle">How do you want to add it?</p>
+
+    <div class="options">
+
+      <!-- Voice -->
+      <div class="option-card">
+        <div class="option-icon" style="background:#EED4DE">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6D1F42" stroke-width="2" stroke-linecap="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+        <div class="option-text">
+          <p class="option-title">Voice memo</p>
+          <p class="option-desc">Talk through what you cooked — we'll write it up</p>
+        </div>
+        <svg class="option-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9,18 15,12 9,6"/></svg>
+      </div>
+
+      <!-- Image -->
+      <div class="option-card">
+        <div class="option-icon" style="background:#C4DDB8">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#25533F" stroke-width="2" stroke-linecap="round">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21,15 16,10 5,21"/>
+          </svg>
+        </div>
+        <div class="option-text">
+          <p class="option-title">From an image</p>
+          <p class="option-desc">Photo of a recipe card, book page, or screenshot</p>
+        </div>
+        <svg class="option-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9,18 15,12 9,6"/></svg>
+      </div>
+
+      <!-- Link -->
+      <div class="option-card">
+        <div class="option-icon" style="background:#B8CEE8">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A3D5C" stroke-width="2" stroke-linecap="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+        </div>
+        <div class="option-text">
+          <p class="option-title">Paste a link</p>
+          <p class="option-desc">From a website, YouTube, Instagram, or TikTok</p>
+        </div>
+        <svg class="option-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9,18 15,12 9,6"/></svg>
+      </div>
+
+      <!-- Type -->
+      <div class="option-card">
+        <div class="option-icon" style="background:#FFFFFF">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7A6A5F" stroke-width="2" stroke-linecap="round">
+            <line x1="17" y1="10" x2="3" y2="10"/>
+            <line x1="21" y1="6" x2="3" y2="6"/>
+            <line x1="21" y1="14" x2="3" y2="14"/>
+            <line x1="17" y1="18" x2="3" y2="18"/>
+          </svg>
+        </div>
+        <div class="option-text">
+          <p class="option-title">Type it in</p>
+          <p class="option-desc">Write it out manually, field by field</p>
+        </div>
+        <svg class="option-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9,18 15,12 9,6"/></svg>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B5A89C" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9,22 9,12 15,12 15,22"/>
+      </svg>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6D1F42" stroke-width="2" stroke-linecap="round">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      <span class="nav-label active">Add</span>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B5A89C" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span class="nav-label">Search</span>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- State 2: Voice recording in progress -->
+<div class="phone">
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="#2A1F1A">
+        <rect x="0" y="8" width="3" height="4" rx="1"/>
+        <rect x="4.5" y="5" width="3" height="7" rx="1"/>
+        <rect x="9" y="2" width="3" height="10" rx="1"/>
+        <rect x="13.5" y="0" width="3" height="12" rx="1" opacity="0.3"/>
+      </svg>
+      <svg width="16" height="12" viewBox="0 0 24 18" fill="none" stroke="#2A1F1A" stroke-width="2.2" stroke-linecap="round">
+        <path d="M1 6C5 2 10 0 12 0s7 2 11 6" opacity="0.3"/>
+        <path d="M4 10c2-2 5-3.5 8-3.5s6 1.5 8 3.5"/>
+        <path d="M7.5 14c1.2-1.2 2.8-2 4.5-2s3.3.8 4.5 2"/>
+        <circle cx="12" cy="17" r="1.5" fill="#2A1F1A"/>
+      </svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
+        <rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#2A1F1A" stroke-width="1.2"/>
+        <rect x="2" y="2" width="16" height="8" rx="2" fill="#2A1F1A"/>
+        <path d="M23 4v4" stroke="#2A1F1A" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <span class="top-bar-title">Voice memo</span>
+  </div>
+
+  <!-- Content -->
+  <div class="content" style="align-items:center; justify-content:center; text-align:center; gap:0">
+
+    <!-- Waveform area -->
+    <div style="width:100%;height:80px;display:flex;align-items:center;justify-content:center;gap:3px;margin-bottom:40px">
+      <!-- Animated waveform bars (static for mockup) -->
+      <div style="width:3px;height:12px;background:#DDD5C8;border-radius:2px"></div>
+      <div style="width:3px;height:28px;background:#DDD5C8;border-radius:2px"></div>
+      <div style="width:3px;height:18px;background:#DDD5C8;border-radius:2px"></div>
+      <div style="width:3px;height:44px;background:#6D1F42;border-radius:2px;opacity:0.6"></div>
+      <div style="width:3px;height:60px;background:#6D1F42;border-radius:2px"></div>
+      <div style="width:3px;height:48px;background:#6D1F42;border-radius:2px;opacity:0.8"></div>
+      <div style="width:3px;height:70px;background:#6D1F42;border-radius:2px"></div>
+      <div style="width:3px;height:54px;background:#6D1F42;border-radius:2px;opacity:0.9"></div>
+      <div style="width:3px;height:64px;background:#6D1F42;border-radius:2px"></div>
+      <div style="width:3px;height:38px;background:#6D1F42;border-radius:2px;opacity:0.7"></div>
+      <div style="width:3px;height:52px;background:#6D1F42;border-radius:2px"></div>
+      <div style="width:3px;height:72px;background:#6D1F42;border-radius:2px"></div>
+      <div style="width:3px;height:46px;background:#6D1F42;border-radius:2px;opacity:0.8"></div>
+      <div style="width:3px;height:58px;background:#6D1F42;border-radius:2px"></div>
+      <div style="width:3px;height:34px;background:#6D1F42;border-radius:2px;opacity:0.6"></div>
+      <div style="width:3px;height:62px;background:#6D1F42;border-radius:2px"></div>
+      <div style="width:3px;height:50px;background:#6D1F42;border-radius:2px;opacity:0.75"></div>
+      <div style="width:3px;height:76px;background:#6D1F42;border-radius:2px"></div>
+      <div style="width:3px;height:42px;background:#6D1F42;border-radius:2px;opacity:0.65"></div>
+      <div style="width:3px;height:56px;background:#6D1F42;border-radius:2px"></div>
+      <div style="width:3px;height:68px;background:#EED4DE;border-radius:2px"></div>
+      <div style="width:3px;height:30px;background:#EED4DE;border-radius:2px"></div>
+      <div style="width:3px;height:14px;background:#DDD5C8;border-radius:2px"></div>
+      <div style="width:3px;height:8px;background:#DDD5C8;border-radius:2px"></div>
+      <div style="width:3px;height:20px;background:#DDD5C8;border-radius:2px"></div>
+      <div style="width:3px;height:10px;background:#DDD5C8;border-radius:2px"></div>
+    </div>
+
+    <!-- Timer -->
+    <p style="font-family:'Inter',sans-serif;font-size:13px;color:#7A6A5F;margin-bottom:8px;font-weight:500;letter-spacing:0.04em">RECORDING</p>
+    <p style="font-family:'Lora',serif;font-size:48px;font-weight:400;color:#2A1F1A;margin-bottom:8px;letter-spacing:-1px">0:43</p>
+    <p style="font-size:13px;color:#B5A89C;margin-bottom:52px">Speak naturally — tell us what you cooked</p>
+
+    <!-- Stop button -->
+    <div style="width:80px;height:80px;background:#6D1F42;border-radius:999px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:20px">
+      <div style="width:28px;height:28px;background:#F2EDE5;border-radius:6px"></div>
+    </div>
+    <p style="font-size:13px;color:#7A6A5F">Tap to stop</p>
+
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B5A89C" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9,22 9,12 15,12 15,22"/>
+      </svg>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6D1F42" stroke-width="2" stroke-linecap="round">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      <span class="nav-label active">Add</span>
+    </div>
+    <div class="nav-item">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B5A89C" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span class="nav-label">Search</span>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
