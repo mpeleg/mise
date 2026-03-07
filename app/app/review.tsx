@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { colors, fonts, fontSize, radius, spacing } from '../src/theme';
 import { Recipe, Ingredient, Step } from '../src/types';
 import { saveRecipe, generateId } from '../src/store';
+import { extractFromUrl, extractFromImage } from '../src/services/extract';
 
 export default function ReviewScreen() {
   const params = useLocalSearchParams<{
@@ -28,10 +30,15 @@ export default function ReviewScreen() {
   }>();
   const router = useRouter();
 
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState('');
   const [name, setName] = useState('');
   const [prepTime, setPrepTime] = useState('');
   const [servings, setServings] = useState('');
-  const [photoUri, setPhotoUri] = useState(params.photoUri || '');
+  // Don't use source image as recipe photo — it's a scan/screenshot, not a food photo
+  const [photoUri, setPhotoUri] = useState(
+    params.sourceType === 'image' ? '' : (params.photoUri || '')
+  );
   const [sourceUrl, setSourceUrl] = useState(params.sourceUrl || '');
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -41,6 +48,53 @@ export default function ReviewScreen() {
   const [steps, setSteps] = useState<Step[]>([
     { id: generateId(), order: 1, text: '' },
   ]);
+
+  // Load existing recipe when editing
+  useEffect(() => {
+    if (!params.recipeId) return;
+    (async () => {
+      const { loadRecipes } = await import('../src/store');
+      const recipes = await loadRecipes();
+      const existing = recipes.find((r) => r.id === params.recipeId);
+      if (!existing) return;
+      setName(existing.name);
+      setPrepTime(existing.prepTime || '');
+      setServings(existing.servings || '');
+      setPhotoUri(existing.photoUri || '');
+      setSourceUrl(existing.sourceUrl || '');
+      setTags(existing.tags);
+      if (existing.ingredients.length > 0) setIngredients(existing.ingredients);
+      if (existing.steps.length > 0) setSteps(existing.steps);
+    })();
+  }, [params.recipeId]);
+
+  // Run AI extraction on mount for link/image imports
+  useEffect(() => {
+    const source = params.sourceType;
+    if (source !== 'link' && source !== 'image') return;
+    if (params.recipeId) return; // Don't extract when editing
+
+    setExtracting(true);
+    setExtractError('');
+
+    const run = source === 'link'
+      ? extractFromUrl(params.sourceUrl || '')
+      : extractFromImage(params.photoUri || '');
+
+    run
+      .then((result) => {
+        setName(result.name);
+        if (result.prepTime) setPrepTime(result.prepTime);
+        if (result.servings) setServings(result.servings);
+        setTags(result.tags);
+        if (result.ingredients.length > 0) setIngredients(result.ingredients);
+        if (result.steps.length > 0) setSteps(result.steps);
+      })
+      .catch((err) => {
+        setExtractError(err.message || 'Failed to extract recipe');
+      })
+      .finally(() => setExtracting(false));
+  }, []);
 
   const addIngredient = () => {
     setIngredients([...ingredients, { id: generateId(), name: '', quantity: '' }]);
@@ -137,6 +191,25 @@ export default function ReviewScreen() {
           </Text>
           <View style={{ width: 24 }} />
         </View>
+
+        {extracting && (
+          <View style={styles.extractingBar}>
+            <ActivityIndicator color={colors.accent} size="small" />
+            <Text style={styles.extractingText}>
+              Extracting recipe{params.sourceType === 'link' ? ' from link' : ' from image'}...
+            </Text>
+          </View>
+        )}
+
+        {extractError !== '' && (
+          <Pressable
+            style={styles.errorBar}
+            onPress={() => setExtractError('')}
+          >
+            <Text style={styles.errorText}>{extractError}</Text>
+            <Text style={styles.errorDismiss}>Tap to dismiss</Text>
+          </Pressable>
+        )}
 
         <ScrollView
           style={styles.scroll}
@@ -324,6 +397,35 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif,
     fontSize: fontSize.md,
     color: colors.text,
+  },
+  extractingBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[8],
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing[20],
+    paddingVertical: spacing[12],
+  },
+  extractingText: {
+    fontFamily: fonts.sans,
+    fontSize: fontSize.sm,
+    color: colors.textSecondary,
+  },
+  errorBar: {
+    backgroundColor: '#FDF2F2',
+    paddingHorizontal: spacing[20],
+    paddingVertical: spacing[12],
+  },
+  errorText: {
+    fontFamily: fonts.sans,
+    fontSize: fontSize.sm,
+    color: colors.error,
+    marginBottom: spacing[2],
+  },
+  errorDismiss: {
+    fontFamily: fonts.sans,
+    fontSize: fontSize.xs,
+    color: colors.textPlaceholder,
   },
   scroll: {
     flex: 1,
