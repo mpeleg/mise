@@ -29,9 +29,9 @@ Short-form video has made food content explode, but the tooling for saving and m
 ## 2. Success Metrics
 
 ### Primary Metric
-- **Weekly active recipe uploads per user** — if people are uploading, the app is solving the friction problem.
-
+- WAU - active is a user who upload at least 1 recipe
 ### Secondary Metrics
+- Weekly active recipe uploads per user — if people are uploading, the app is solving the friction problem.
 - Recipe-to-cooking-session ratio — are people using what they upload?
 - Share events per month — are recipes leaving the app?
 - D7 retention — do people come back after the first week?
