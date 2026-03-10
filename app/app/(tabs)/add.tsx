@@ -20,22 +20,16 @@ type OptionProps = {
   iconBg: string;
   iconColor: string;
   title: string;
-  description: string;
   onPress: () => void;
 };
 
-function OptionCard({ icon, iconBg, iconColor, title, description, onPress }: OptionProps) {
+function OptionCard({ icon, iconBg, iconColor, title, onPress }: OptionProps) {
   return (
     <Pressable style={styles.optionCard} onPress={onPress}>
       <View style={[styles.optionIcon, { backgroundColor: iconBg }]}>
         <Ionicons name={icon} size={24} color={iconColor} />
       </View>
-      <View style={styles.optionText}>
-        <Text style={styles.optionTitle}>{title}</Text>
-        <Text style={styles.optionDesc} numberOfLines={1}>
-          {description}
-        </Text>
-      </View>
+      <Text style={styles.optionTitle}>{title}</Text>
       <Ionicons name="chevron-forward" size={18} color={colors.border} />
     </Pressable>
   );
@@ -96,7 +90,6 @@ export default function AddScreen() {
             iconBg="#DDD5C8"
             iconColor={colors.text}
             title="Paste a link"
-            description="From a website, YouTube, Instagram, or TikTok"
             onPress={() => setShowLinkInput(!showLinkInput)}
           />
 
@@ -133,7 +126,6 @@ export default function AddScreen() {
             iconBg="#DDD5C8"
             iconColor={colors.text}
             title="From an image"
-            description="Photo of a recipe card, book page, or screenshot"
             onPress={handleImagePick}
           />
 
@@ -142,7 +134,6 @@ export default function AddScreen() {
             iconBg="#DDD5C8"
             iconColor={colors.text}
             title="Type it in"
-            description="Write it out manually, field by field"
             onPress={() =>
               router.push({
                 pathname: '/review',
@@ -200,19 +191,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  optionText: {
-    flex: 1,
-  },
   optionTitle: {
+    flex: 1,
     fontFamily: fonts.sans,
     fontSize: fontSize.base,
     color: colors.text,
-    marginBottom: 2,
-  },
-  optionDesc: {
-    fontFamily: fonts.sans,
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
   },
   linkInputArea: {
     flexDirection: 'row',

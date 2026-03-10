@@ -57,39 +57,42 @@ export default function RecipeDetailScreen() {
     });
   };
 
+  // Detect if recipe content is primarily Hebrew/RTL
+  const isRTL = /[\u0590-\u05FF]/.test(recipe.name);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Hero */}
-      {recipe.photoUri ? (
-        <Image source={{ uri: recipe.photoUri }} style={styles.hero} />
-      ) : (
-        <View style={[styles.hero, styles.heroPlaceholder]}>
-          <Ionicons name="restaurant-outline" size={48} color={colors.borderStrong} />
-        </View>
-      )}
-
-      {/* Back button overlay */}
-      <SafeAreaView style={styles.heroNav} edges={['top']}>
-        <Pressable style={styles.heroBtn} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={18} color={colors.white} />
+      {/* Nav bar */}
+      <View style={styles.navBar}>
+        <Pressable style={styles.navBtn} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={20} color={colors.text} />
         </Pressable>
-        <View style={styles.heroActions}>
-          <Pressable style={styles.heroBtn} onPress={handleEdit}>
-            <Ionicons name="create-outline" size={16} color={colors.white} />
+        <View style={styles.navActions}>
+          <Pressable style={styles.navBtn} onPress={handleEdit}>
+            <Ionicons name="create-outline" size={18} color={colors.text} />
           </Pressable>
-          <Pressable style={styles.heroBtn} onPress={handleDelete}>
-            <Ionicons name="trash-outline" size={16} color={colors.white} />
+          <Pressable style={styles.navBtn} onPress={handleDelete}>
+            <Ionicons name="trash-outline" size={18} color={colors.text} />
           </Pressable>
         </View>
-      </SafeAreaView>
+      </View>
 
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Hero */}
+        {recipe.photoUri ? (
+          <Image source={{ uri: recipe.photoUri }} style={styles.hero} />
+        ) : (
+          <View style={[styles.hero, styles.heroPlaceholder]}>
+            <Ionicons name="restaurant-outline" size={48} color={colors.borderStrong} />
+          </View>
+        )}
+
         {/* Header */}
-        <Text style={styles.recipeName}>{recipe.name}</Text>
+        <Text style={[styles.recipeName, isRTL && styles.rtlText]}>{recipe.name}</Text>
 
         {(recipe.prepTime || recipe.servings) && (
           <View style={styles.metaRow}>
@@ -147,9 +150,9 @@ export default function RecipeDetailScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ingredients</Text>
             {recipe.ingredients.map((ing) => (
-              <View key={ing.id} style={styles.ingredientRow}>
-                <Text style={styles.ingredientName}>{ing.name}</Text>
-                <Text style={styles.ingredientQty}>{ing.quantity}</Text>
+              <View key={ing.id} style={[styles.ingredientRow, isRTL && styles.rtlRow]}>
+                <Text style={[styles.ingredientName, isRTL && styles.rtlText]}>{ing.name}</Text>
+                <Text style={[styles.ingredientQty, isRTL && styles.rtlText]}>{ing.quantity}</Text>
               </View>
             ))}
           </View>
@@ -165,11 +168,11 @@ export default function RecipeDetailScreen() {
             <Text style={styles.sectionTitle}>Steps</Text>
             <View style={styles.stepList}>
               {recipe.steps.map((step) => (
-                <View key={step.id} style={styles.stepRow}>
+                <View key={step.id} style={[styles.stepRow, isRTL && styles.rtlRow]}>
                   <View style={styles.stepNum}>
                     <Text style={styles.stepNumText}>{step.order}</Text>
                   </View>
-                  <Text style={styles.stepText}>{step.text}</Text>
+                  <Text style={[styles.stepText, isRTL && styles.rtlText]}>{step.text}</Text>
                 </View>
               ))}
             </View>
@@ -232,36 +235,34 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     color: colors.accent,
   },
+  navBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[8],
+  },
+  navBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navActions: {
+    flexDirection: 'row',
+    gap: spacing[4],
+  },
   hero: {
-    height: 240,
     width: '100%',
+    height: 240,
+    borderRadius: radius.xl,
+    marginBottom: spacing[20],
   },
   heroPlaceholder: {
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  heroNav: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing[16],
-  },
-  heroBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  heroActions: {
-    flexDirection: 'row',
-    gap: spacing[8],
   },
   scroll: {
     flex: 1,
@@ -406,5 +407,12 @@ const styles = StyleSheet.create({
   modalImage: {
     width: '100%',
     height: '80%',
+  },
+  rtlText: {
+    writingDirection: 'rtl',
+    textAlign: 'right',
+  },
+  rtlRow: {
+    flexDirection: 'row-reverse',
   },
 });

@@ -59,7 +59,11 @@ STEPS:
 GENERAL:
 - If text in an image is blurry or unclear, write exactly what you can read. Do NOT guess missing words.
 - Only include prepTime and servings if explicitly stated in the source.
-- Generate 3-5 short tags in the source language based on the recipe content.
+- Generate 3-5 short tags in the source language. Tags must ONLY be one of these categories:
+  1. Cuisine type (e.g. italian, asian, mexican, middle eastern, איטלקי, אסיאתי)
+  2. Main protein/dish type (e.g. chicken, fish, pasta, salad, עוף, דגים)
+  3. Course type (e.g. main course, side dish, starter, dessert, מנה עיקרית, קינוח)
+  Do NOT generate tags for cooking method, season, difficulty, or anything else.
 - Return ONLY the JSON, nothing else.`;
 
 function parseRecipeJson(text: string): ExtractedRecipe {

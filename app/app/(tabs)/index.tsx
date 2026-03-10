@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,28 @@ import { Recipe } from '../../src/types';
 import { loadRecipes } from '../../src/store';
 
 function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
+  const [imageAspect, setImageAspect] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (recipe.photoUri) {
+      Image.getSize(recipe.photoUri, (w, h) => {
+        if (w && h) setImageAspect(w / h);
+      });
+    }
+  }, [recipe.photoUri]);
+
   return (
     <Pressable style={styles.card} onPress={onPress}>
       {recipe.photoUri ? (
-        <Image source={{ uri: recipe.photoUri }} style={styles.cardImage} />
+        <Image
+          source={{ uri: recipe.photoUri }}
+          style={[
+            styles.cardImage,
+            imageAspect ? { aspectRatio: imageAspect } : { height: 180 },
+          ]}
+        />
       ) : (
-        <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
+        <View style={[styles.cardImage, { height: 180 }, styles.cardImagePlaceholder]}>
           <Ionicons name="image-outline" size={32} color={colors.borderStrong} />
           <Text style={styles.noPhotoText}>No photo</Text>
         </View>
@@ -28,11 +44,6 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
       <View style={styles.cardBody}>
         <Text style={styles.cardName} numberOfLines={2}>
           {recipe.name}
-        </Text>
-        <Text style={styles.cardMeta}>
-          {[recipe.prepTime, recipe.servings && `${recipe.servings} servings`]
-            .filter(Boolean)
-            .join(' \u00B7 ')}
         </Text>
         {recipe.tags.length > 0 && (
           <View style={styles.tags}>
@@ -68,8 +79,15 @@ export default function HomeScreen() {
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>No recipes yet</Text>
           <Text style={styles.emptySub}>
-            Tap the Add tab to import your first recipe
+            Import your first recipe to get started
           </Text>
+          <Pressable
+            style={styles.emptyBtn}
+            onPress={() => router.push('/(tabs)/add')}
+          >
+            <Ionicons name="add" size={18} color={colors.white} />
+            <Text style={styles.emptyBtnText}>Add recipe</Text>
+          </Pressable>
         </View>
       ) : (
         <FlatList
@@ -114,7 +132,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardImage: {
-    height: 180,
+    width: '100%',
   },
   cardImagePlaceholder: {
     backgroundColor: colors.bg,
@@ -135,13 +153,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     color: colors.text,
     lineHeight: 22,
-    marginBottom: spacing[4],
-  },
-  cardMeta: {
-    fontFamily: fonts.sans,
-    fontSize: fontSize.sm,
-    color: colors.textSecondary,
-    marginBottom: spacing[12],
+    marginBottom: spacing[8],
   },
   tags: {
     flexDirection: 'row',
@@ -177,5 +189,20 @@ const styles = StyleSheet.create({
     color: colors.textPlaceholder,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  emptyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[6],
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing[20],
+    paddingVertical: spacing[12],
+    borderRadius: radius.full,
+    marginTop: spacing[16],
+  },
+  emptyBtnText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: fontSize.base,
+    color: colors.white,
   },
 });

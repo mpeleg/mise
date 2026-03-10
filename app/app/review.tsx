@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { colors, fonts, fontSize, radius, spacing } from '../src/theme';
-import { Recipe, Ingredient, Step } from '../src/types';
+import { Recipe, Ingredient, Step, Note } from '../src/types';
 import { saveRecipe, generateId } from '../src/store';
 import { extractFromUrl, extractFromImage, downloadImage } from '../src/services/extract';
 
@@ -51,6 +51,7 @@ export default function ReviewScreen() {
   const [steps, setSteps] = useState<Step[]>([
     { id: generateId(), order: 1, text: '' },
   ]);
+  const [notes, setNotes] = useState<Note[]>([]);
 
   // Load existing recipe when editing
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function ReviewScreen() {
       setTags(existing.tags);
       if (existing.ingredients.length > 0) setIngredients(existing.ingredients);
       if (existing.steps.length > 0) setSteps(existing.steps);
+      if (existing.notes.length > 0) setNotes(existing.notes);
     })();
   }, [params.recipeId]);
 
@@ -137,6 +139,18 @@ export default function ReviewScreen() {
     setSteps(filtered.map((s, i) => ({ ...s, order: i + 1 })));
   };
 
+  const addNote = () => {
+    setNotes([...notes, { id: generateId(), text: '', createdAt: new Date().toISOString() }]);
+  };
+
+  const updateNote = (id: string, text: string) => {
+    setNotes(notes.map((n) => (n.id === id ? { ...n, text } : n)));
+  };
+
+  const removeNote = (id: string) => {
+    setNotes(notes.filter((n) => n.id !== id));
+  };
+
   const addTag = () => {
     const t = tagInput.trim();
     if (t && !tags.includes(t)) {
@@ -176,7 +190,7 @@ export default function ReviewScreen() {
       servings: servings.trim() || undefined,
       ingredients: validIngredients,
       steps: validSteps.map((s, i) => ({ ...s, order: i + 1 })),
-      notes: [],
+      notes: notes.filter((n) => n.text.trim()),
       photoUri: photoUri || undefined,
       sourceUrl: sourceUrl || undefined,
       sourceImageUri: sourceImageUri || undefined,
@@ -189,6 +203,9 @@ export default function ReviewScreen() {
     router.dismissAll();
     router.replace('/');
   };
+
+  // Detect if recipe content is primarily Hebrew/RTL
+  const isRTL = /[\u0590-\u05FF]/.test(name);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -207,15 +224,6 @@ export default function ReviewScreen() {
           <View style={{ width: 24 }} />
         </View>
 
-        {extracting && (
-          <View style={styles.extractingBar}>
-            <ActivityIndicator color={colors.accent} size="small" />
-            <Text style={styles.extractingText}>
-              Extracting recipe{params.sourceType === 'link' ? ' from link' : ' from image'}...
-            </Text>
-          </View>
-        )}
-
         {extractError !== '' && (
           <Pressable
             style={styles.errorBar}
@@ -226,6 +234,18 @@ export default function ReviewScreen() {
           </Pressable>
         )}
 
+        {extracting ? (
+          <View style={styles.extractingFull}>
+            <ActivityIndicator color={colors.accent} size="large" />
+            <Text style={styles.extractingTitle}>
+              {params.sourceType === 'link' ? 'Importing from link' : 'Reading image'}
+            </Text>
+            <Text style={styles.extractingSubtext}>
+              Extracting recipe details...
+            </Text>
+          </View>
+        ) : (
+        <>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -246,7 +266,7 @@ export default function ReviewScreen() {
 
           {/* Name */}
           <TextInput
-            style={styles.nameInput}
+            style={[styles.nameInput, isRTL && styles.rtlInput]}
             value={name}
             onChangeText={setName}
             placeholder="Recipe name"
@@ -331,16 +351,16 @@ export default function ReviewScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ingredients</Text>
             {ingredients.map((ing, idx) => (
-              <View key={ing.id} style={styles.ingredientRow}>
+              <View key={ing.id} style={[styles.ingredientRow, isRTL && styles.rtlRow]}>
                 <TextInput
-                  style={styles.ingredientName}
+                  style={[styles.ingredientName, isRTL && styles.rtlInput]}
                   value={ing.name}
                   onChangeText={(v) => updateIngredient(ing.id, 'name', v)}
                   placeholder={`Ingredient ${idx + 1}`}
                   placeholderTextColor={colors.textPlaceholder}
                 />
                 <TextInput
-                  style={styles.ingredientQty}
+                  style={[styles.ingredientQty, isRTL && styles.rtlInput]}
                   value={ing.quantity}
                   onChangeText={(v) => updateIngredient(ing.id, 'quantity', v)}
                   placeholder="Qty"
@@ -365,12 +385,12 @@ export default function ReviewScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Steps</Text>
             {steps.map((step) => (
-              <View key={step.id} style={styles.stepRow}>
+              <View key={step.id} style={[styles.stepRow, isRTL && styles.rtlRow]}>
                 <View style={styles.stepNum}>
                   <Text style={styles.stepNumText}>{step.order}</Text>
                 </View>
                 <TextInput
-                  style={styles.stepInput}
+                  style={[styles.stepInput, isRTL && styles.rtlInput]}
                   value={step.text}
                   onChangeText={(v) => updateStep(step.id, v)}
                   placeholder={`Step ${step.order}`}
@@ -390,6 +410,32 @@ export default function ReviewScreen() {
             </Pressable>
           </View>
 
+          <View style={styles.divider} />
+
+          {/* Notes */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Notes</Text>
+            {notes.map((note) => (
+              <View key={note.id} style={styles.noteRow}>
+                <TextInput
+                  style={[styles.noteInput, isRTL && styles.rtlInput]}
+                  value={note.text}
+                  onChangeText={(v) => updateNote(note.id, v)}
+                  placeholder="Add a note..."
+                  placeholderTextColor={colors.textPlaceholder}
+                  multiline
+                />
+                <Pressable onPress={() => removeNote(note.id)} hitSlop={8}>
+                  <Ionicons name="remove-circle-outline" size={20} color={colors.textPlaceholder} />
+                </Pressable>
+              </View>
+            ))}
+            <Pressable style={styles.addRow} onPress={addNote}>
+              <Ionicons name="add" size={16} color={colors.textPlaceholder} />
+              <Text style={styles.addRowText}>Add note</Text>
+            </Pressable>
+          </View>
+
           <View style={{ height: spacing[48] }} />
         </ScrollView>
 
@@ -399,6 +445,8 @@ export default function ReviewScreen() {
             <Text style={styles.saveBtnText}>Save recipe</Text>
           </Pressable>
         </View>
+        </>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -421,15 +469,20 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     color: colors.text,
   },
-  extractingBar: {
-    flexDirection: 'row',
+  extractingFull: {
+    flex: 1,
     alignItems: 'center',
-    gap: spacing[8],
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing[20],
-    paddingVertical: spacing[12],
+    justifyContent: 'center',
+    gap: spacing[16],
+    paddingHorizontal: spacing[32],
   },
-  extractingText: {
+  extractingTitle: {
+    fontFamily: fonts.serif,
+    fontSize: fontSize.lg,
+    color: colors.text,
+    marginTop: spacing[8],
+  },
+  extractingSubtext: {
     fontFamily: fonts.sans,
     fontSize: fontSize.sm,
     color: colors.textSecondary,
@@ -647,5 +700,28 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     fontSize: fontSize.base,
     color: colors.white,
+  },
+  noteRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[8],
+    marginBottom: spacing[8],
+  },
+  noteInput: {
+    flex: 1,
+    fontFamily: fonts.sans,
+    fontSize: fontSize.base,
+    color: colors.text,
+    lineHeight: 22,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingVertical: spacing[8],
+  },
+  rtlInput: {
+    writingDirection: 'rtl',
+    textAlign: 'right',
+  },
+  rtlRow: {
+    flexDirection: 'row-reverse',
   },
 });

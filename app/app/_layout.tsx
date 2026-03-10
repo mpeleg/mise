@@ -43,7 +43,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="review"
-          options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+          options={{ animation: 'slide_from_bottom' }}
         />
         <Stack.Screen name="recipe/[id]" />
       </Stack>
