@@ -19,7 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { colors, fonts, fontSize, radius, spacing } from '../src/theme';
 import { Recipe, Ingredient, Step } from '../src/types';
 import { saveRecipe, generateId } from '../src/store';
-import { extractFromUrl, extractFromImage } from '../src/services/extract';
+import { extractFromUrl, extractFromImage, downloadImage } from '../src/services/extract';
 
 export default function ReviewScreen() {
   const params = useLocalSearchParams<{
@@ -40,6 +40,9 @@ export default function ReviewScreen() {
     params.sourceType === 'image' ? '' : (params.photoUri || '')
   );
   const [sourceUrl, setSourceUrl] = useState(params.sourceUrl || '');
+  const [sourceImageUri, setSourceImageUri] = useState(
+    params.sourceType === 'image' ? (params.photoUri || '') : ''
+  );
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
@@ -62,6 +65,7 @@ export default function ReviewScreen() {
       setServings(existing.servings || '');
       setPhotoUri(existing.photoUri || '');
       setSourceUrl(existing.sourceUrl || '');
+      setSourceImageUri(existing.sourceImageUri || '');
       setTags(existing.tags);
       if (existing.ingredients.length > 0) setIngredients(existing.ingredients);
       if (existing.steps.length > 0) setSteps(existing.steps);
@@ -82,13 +86,23 @@ export default function ReviewScreen() {
       : extractFromImage(params.photoUri || '');
 
     run
-      .then((result) => {
+      .then(async (result) => {
         setName(result.name);
         if (result.prepTime) setPrepTime(result.prepTime);
         if (result.servings) setServings(result.servings);
         setTags(result.tags);
         if (result.ingredients.length > 0) setIngredients(result.ingredients);
         if (result.steps.length > 0) setSteps(result.steps);
+
+        // Auto-populate food photo for link imports
+        if (source === 'link' && result.imageUrl) {
+          try {
+            const localUri = await downloadImage(result.imageUrl);
+            setPhotoUri(localUri);
+          } catch (e) {
+            console.log('[review] Failed to download recipe image:', e);
+          }
+        }
       })
       .catch((err) => {
         setExtractError(err.message || 'Failed to extract recipe');
@@ -165,6 +179,7 @@ export default function ReviewScreen() {
       notes: [],
       photoUri: photoUri || undefined,
       sourceUrl: sourceUrl || undefined,
+      sourceImageUri: sourceImageUri || undefined,
       sourceType: (params.sourceType as Recipe['sourceType']) || 'manual',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -269,6 +284,14 @@ export default function ReviewScreen() {
               <Text style={styles.sourceText} numberOfLines={1}>
                 {sourceUrl}
               </Text>
+            </View>
+          ) : null}
+
+          {/* Source Image */}
+          {sourceImageUri ? (
+            <View style={styles.sourceRow}>
+              <Ionicons name="image-outline" size={14} color={colors.accent} />
+              <Text style={styles.sourceText}>Imported from image</Text>
             </View>
           ) : null}
 

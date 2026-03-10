@@ -2,3 +2,6 @@
 // Move to Supabase Edge Function for production
 export const ANTHROPIC_API_KEY =
   process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY || '';
+
+export const GEMINI_API_KEY =
+  process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';

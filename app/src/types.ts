@@ -22,6 +22,7 @@ export interface Recipe {
   notes: Note[];
   photoUri?: string;
   sourceUrl?: string;
+  sourceImageUri?: string;
   sourceType: 'manual' | 'voice' | 'link' | 'image';
   createdAt: string;
   updatedAt: string;

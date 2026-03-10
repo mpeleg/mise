@@ -7,6 +7,7 @@ import {
   Image,
   Pressable,
   Linking,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +20,7 @@ export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [showSourceImage, setShowSourceImage] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -128,6 +130,16 @@ export default function RecipeDetailScreen() {
           </Pressable>
         )}
 
+        {recipe.sourceImageUri && (
+          <Pressable
+            style={styles.sourceRow}
+            onPress={() => setShowSourceImage(true)}
+          >
+            <Ionicons name="image-outline" size={14} color={colors.accent} />
+            <Text style={styles.sourceLink}>View source image</Text>
+          </Pressable>
+        )}
+
         <View style={styles.divider} />
 
         {/* Ingredients */}
@@ -166,6 +178,35 @@ export default function RecipeDetailScreen() {
 
         <View style={{ height: spacing[48] }} />
       </ScrollView>
+
+      {/* Source image fullscreen modal */}
+      {recipe.sourceImageUri && (
+        <Modal
+          visible={showSourceImage}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowSourceImage(false)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setShowSourceImage(false)}
+          >
+            <SafeAreaView style={styles.modalContainer} edges={['top']}>
+              <Pressable
+                style={styles.modalClose}
+                onPress={() => setShowSourceImage(false)}
+              >
+                <Ionicons name="close" size={24} color={colors.white} />
+              </Pressable>
+            </SafeAreaView>
+            <Image
+              source={{ uri: recipe.sourceImageUri }}
+              style={styles.modalImage}
+              resizeMode="contain"
+            />
+          </Pressable>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -340,5 +381,30 @@ const styles = StyleSheet.create({
     fontSize: fontSize.base,
     color: colors.text,
     lineHeight: 24,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 1,
+  },
+  modalClose: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: spacing[16],
+  },
+  modalImage: {
+    width: '100%',
+    height: '80%',
   },
 });

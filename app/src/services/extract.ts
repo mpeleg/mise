@@ -1,5 +1,5 @@
 import * as FileSystem from 'expo-file-system/legacy';
-import { ANTHROPIC_API_KEY } from '../config';
+import { ANTHROPIC_API_KEY, GEMINI_API_KEY } from '../config';
 import { Ingredient, Step } from '../types';
 import { generateId } from '../store';
 
@@ -10,6 +10,7 @@ export interface ExtractedRecipe {
   tags: string[];
   ingredients: Ingredient[];
   steps: Step[];
+  imageUrl?: string;
 }
 
 const SYSTEM_PROMPT = `You are a precise recipe transcription tool. You COPY text from the source — you do NOT rewrite, rephrase, or embellish. Treat this like a transcription task, not a creative task.
@@ -61,47 +62,7 @@ GENERAL:
 - Generate 3-5 short tags in the source language based on the recipe content.
 - Return ONLY the JSON, nothing else.`;
 
-async function callClaude(
-  messages: { role: string; content: any }[],
-  useVision = false,
-): Promise<ExtractedRecipe> {
-  if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === 'your-key-here') {
-    throw new Error(
-      'Set your EXPO_PUBLIC_ANTHROPIC_API_KEY in .env to enable AI extraction',
-    );
-  }
-
-  // Append assistant prefill to force JSON output
-  const allMessages = [
-    ...messages,
-    { role: 'assistant', content: '{' },
-  ];
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: useVision ? 'claude-sonnet-4-20250514' : 'claude-haiku-4-5-20251001',
-      max_tokens: 4096,
-      system: SYSTEM_PROMPT,
-      messages: allMessages,
-    }),
-  });
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Claude API error (${response.status}): ${err}`);
-  }
-
-  const data = await response.json();
-  // Prepend the "{" we used as prefill
-  const text = '{' + (data.content?.[0]?.text || '');
-  console.log('[extract] Raw Claude response:', text.slice(0, 500));
-
+function parseRecipeJson(text: string): ExtractedRecipe {
   // Parse JSON from response — strip markdown fences, BOM, and extra whitespace
   let jsonStr = text
     .replace(/```json\s*/gi, '')
@@ -153,6 +114,150 @@ async function callClaude(
   };
 }
 
+async function callClaude(
+  messages: { role: string; content: any }[],
+): Promise<ExtractedRecipe> {
+  if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === 'your-key-here') {
+    throw new Error(
+      'Set your EXPO_PUBLIC_ANTHROPIC_API_KEY in .env to enable AI extraction',
+    );
+  }
+
+  // Append assistant prefill to force JSON output
+  const allMessages = [
+    ...messages,
+    { role: 'assistant', content: '{' },
+  ];
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 4096,
+      system: SYSTEM_PROMPT,
+      messages: allMessages,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Claude API error (${response.status}): ${err}`);
+  }
+
+  const data = await response.json();
+  // Prepend the "{" we used as prefill
+  const text = '{' + (data.content?.[0]?.text || '');
+  console.log('[extract] Raw Claude response:', text.slice(0, 500));
+
+  return parseRecipeJson(text);
+}
+
+async function callGemini(
+  base64: string,
+  mediaType: string,
+  userPrompt: string,
+): Promise<ExtractedRecipe> {
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your-key-here') {
+    throw new Error(
+      'Set your EXPO_PUBLIC_GEMINI_API_KEY in .env to enable image extraction',
+    );
+  }
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{
+          parts: [
+            { inline_data: { mime_type: mediaType, data: base64 } },
+            { text: userPrompt },
+          ],
+        }],
+        generationConfig: {
+          response_mime_type: 'application/json',
+        },
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Gemini API error (${response.status}): ${err}`);
+  }
+
+  const data = await response.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  console.log('[extract] Raw Gemini response:', text.slice(0, 500));
+
+  return parseRecipeJson(text);
+}
+
+function extractImageUrl(html: string, baseUrl: string): string | undefined {
+  try {
+    // 1. JSON-LD Recipe schema — most reliable for recipe sites
+    const ldJsonMatches = html.match(
+      /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+    );
+    if (ldJsonMatches) {
+      for (const block of ldJsonMatches) {
+        const jsonStr = block.replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '').trim();
+        try {
+          let parsed = JSON.parse(jsonStr);
+          // Handle @graph arrays
+          if (parsed['@graph']) parsed = parsed['@graph'];
+          const items = Array.isArray(parsed) ? parsed : [parsed];
+          for (const item of items) {
+            if (item['@type'] === 'Recipe' || (Array.isArray(item['@type']) && item['@type'].includes('Recipe'))) {
+              const img = item.image;
+              if (img) {
+                const imgUrl = typeof img === 'string' ? img : Array.isArray(img) ? img[0] : img.url;
+                if (typeof imgUrl === 'string') return new URL(imgUrl, baseUrl).href;
+              }
+            }
+          }
+        } catch { /* skip invalid JSON-LD */ }
+      }
+    }
+
+    // 2. og:image meta tag
+    const ogMatch = html.match(
+      /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+    ) || html.match(
+      /<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i,
+    );
+    if (ogMatch?.[1]) return new URL(ogMatch[1], baseUrl).href;
+
+    // 3. twitter:image fallback
+    const twMatch = html.match(
+      /<meta[^>]*(?:name|property)=["']twitter:image["'][^>]*content=["']([^"']+)["'][^>]*>/i,
+    ) || html.match(
+      /<meta[^>]*content=["']([^"']+)["'][^>]*(?:name|property)=["']twitter:image["'][^>]*>/i,
+    );
+    if (twMatch?.[1]) return new URL(twMatch[1], baseUrl).href;
+  } catch (e) {
+    console.log('[extract] Failed to extract image URL:', e);
+  }
+  return undefined;
+}
+
+export async function downloadImage(remoteUrl: string): Promise<string> {
+  const ext = remoteUrl.match(/\.(jpe?g|png|webp)/i)?.[1] || 'jpg';
+  const filename = `recipe_${Date.now()}.${ext}`;
+  const localUri = FileSystem.documentDirectory + filename;
+  console.log('[extract] Downloading recipe image:', remoteUrl.slice(0, 100));
+  const result = await FileSystem.downloadAsync(remoteUrl, localUri);
+  console.log('[extract] Image saved to:', result.uri);
+  return result.uri;
+}
+
 export async function extractFromUrl(url: string): Promise<ExtractedRecipe> {
   // Fetch the page content
   const res = await fetch(url, {
@@ -168,6 +273,9 @@ export async function extractFromUrl(url: string): Promise<ExtractedRecipe> {
 
   const html = await res.text();
 
+  // Extract image URL before stripping HTML
+  const imageUrl = extractImageUrl(html, url);
+
   // Strip heavy HTML to reduce tokens — keep text content
   const stripped = html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -180,12 +288,15 @@ export async function extractFromUrl(url: string): Promise<ExtractedRecipe> {
     .trim()
     .slice(0, 12000); // Cap at ~12k chars to stay within token limits
 
-  return callClaude([
+  const recipe = await callClaude([
     {
       role: 'user',
       content: `Extract EXACTLY the recipe from this webpage. Do not invent anything — only use what is in the text. Preserve the original language.\n\nURL: ${url}\n\nPage content:\n${stripped}`,
     },
   ]);
+
+  recipe.imageUrl = imageUrl;
+  return recipe;
 }
 
 export async function extractFromImage(
@@ -201,23 +312,9 @@ export async function extractFromImage(
   const mediaType =
     ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
 
-  return callClaude([
-    {
-      role: 'user',
-      content: [
-        {
-          type: 'image',
-          source: {
-            type: 'base64',
-            media_type: mediaType,
-            data: base64,
-          },
-        },
-        {
-          type: 'text',
-          text: 'Transcribe the recipe in this image word-for-word. Copy the text exactly as written — same language, same words, same number of steps. Do not rephrase, do not add anything, do not correct anything. If a word is unclear, write what you see.',
-        },
-      ],
-    },
-  ], true); // use stronger model for vision/OCR
+  return callGemini(
+    base64,
+    mediaType,
+    'Transcribe the recipe in this image word-for-word. Copy the text exactly as written — same language, same words, same number of steps. Do not rephrase, do not add anything, do not correct anything. If a word is unclear, write what you see.',
+  );
 }
