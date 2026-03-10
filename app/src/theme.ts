@@ -45,6 +45,15 @@ export const fonts = {
   sansBold: 'Inter_700Bold',
 } as const;
 
+export const hebrewFonts = {
+  serif: 'Heebo_700Bold',
+  serifBold: 'Heebo_700Bold',
+  sans: 'Heebo_400Regular',
+  sansMedium: 'Heebo_500Medium',
+  sansSemiBold: 'Heebo_600SemiBold',
+  sansBold: 'Heebo_700Bold',
+} as const;
+
 export const fontSize = {
   xs: 11,
   sm: 13,

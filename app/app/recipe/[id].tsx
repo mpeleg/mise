@@ -12,7 +12,7 @@ import {
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, fontSize, radius, spacing } from '../../src/theme';
+import { colors, fonts, hebrewFonts, fontSize, radius, spacing } from '../../src/theme';
 import { Recipe } from '../../src/types';
 import { loadRecipes, deleteRecipe } from '../../src/store';
 
@@ -59,6 +59,7 @@ export default function RecipeDetailScreen() {
 
   // Detect if recipe content is primarily Hebrew/RTL
   const isRTL = /[\u0590-\u05FF]/.test(recipe.name);
+  const f = isRTL ? hebrewFonts : fonts;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -92,20 +93,20 @@ export default function RecipeDetailScreen() {
         )}
 
         {/* Header */}
-        <Text style={[styles.recipeName, isRTL && styles.rtlText]}>{recipe.name}</Text>
+        <Text style={[styles.recipeName, { fontFamily: f.serif }, isRTL && styles.rtlText]}>{recipe.name}</Text>
 
         {(recipe.prepTime || recipe.servings) && (
           <View style={styles.metaRow}>
             {recipe.prepTime && (
               <View style={styles.metaItem}>
                 <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
-                <Text style={styles.metaText}>{recipe.prepTime}</Text>
+                <Text style={[styles.metaText, { fontFamily: f.sans }]}>{recipe.prepTime}</Text>
               </View>
             )}
             {recipe.servings && (
               <View style={styles.metaItem}>
                 <Ionicons name="people-outline" size={14} color={colors.textSecondary} />
-                <Text style={styles.metaText}>{recipe.servings} servings</Text>
+                <Text style={[styles.metaText, { fontFamily: f.sans }]}>{recipe.servings} servings</Text>
               </View>
             )}
           </View>
@@ -115,7 +116,7 @@ export default function RecipeDetailScreen() {
           <View style={styles.tagsRow}>
             {recipe.tags.map((tag) => (
               <View key={tag} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
+                <Text style={[styles.tagText, { fontFamily: f.sans }]}>{tag}</Text>
               </View>
             ))}
           </View>
@@ -151,8 +152,8 @@ export default function RecipeDetailScreen() {
             <Text style={styles.sectionTitle}>Ingredients</Text>
             {recipe.ingredients.map((ing) => (
               <View key={ing.id} style={[styles.ingredientRow, isRTL && styles.rtlRow]}>
-                <Text style={[styles.ingredientName, isRTL && styles.rtlText]}>{ing.name}</Text>
-                <Text style={[styles.ingredientQty, isRTL && styles.rtlText]}>{ing.quantity}</Text>
+                <Text style={[styles.ingredientName, { fontFamily: f.sans }, isRTL && styles.rtlText]}>{ing.name}</Text>
+                <Text style={[styles.ingredientQty, { fontFamily: f.sansMedium }, isRTL && styles.rtlText]}>{ing.quantity}</Text>
               </View>
             ))}
           </View>
@@ -172,11 +173,26 @@ export default function RecipeDetailScreen() {
                   <View style={styles.stepNum}>
                     <Text style={styles.stepNumText}>{step.order}</Text>
                   </View>
-                  <Text style={[styles.stepText, isRTL && styles.rtlText]}>{step.text}</Text>
+                  <Text style={[styles.stepText, { fontFamily: f.sans }, isRTL && styles.rtlText]}>{step.text}</Text>
                 </View>
               ))}
             </View>
           </View>
+        )}
+
+        {/* Notes */}
+        {recipe.notes.length > 0 && (
+          <>
+            {recipe.steps.length > 0 && <View style={styles.divider} />}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Notes</Text>
+              {recipe.notes.map((note) => (
+                <Text key={note.id} style={[styles.noteText, { fontFamily: f.sans }, isRTL && styles.rtlText]}>
+                  {note.text}
+                </Text>
+              ))}
+            </View>
+          </>
         )}
 
         <View style={{ height: spacing[48] }} />
@@ -407,6 +423,13 @@ const styles = StyleSheet.create({
   modalImage: {
     width: '100%',
     height: '80%',
+  },
+  noteText: {
+    fontFamily: fonts.sans,
+    fontSize: fontSize.base,
+    color: colors.textSecondary,
+    lineHeight: 24,
+    marginBottom: spacing[8],
   },
   rtlText: {
     writingDirection: 'rtl',

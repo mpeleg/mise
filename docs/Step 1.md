@@ -29,9 +29,7 @@ for creators
 - add recipe page
 - image import
   - allow to upload more than 1 image 
-- import from a link
-- tags
-  - add colors to choose from ? with food names in the coloring pallet of the app 
+- import from a link 
 - feed
   - the empty state of the feed should include a button with add recipe  
 - review recipe screen

@@ -10,12 +10,14 @@ import {
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, fontSize, radius, spacing } from '../../src/theme';
+import { colors, fonts, hebrewFonts, fontSize, radius, spacing } from '../../src/theme';
 import { Recipe } from '../../src/types';
 import { loadRecipes } from '../../src/store';
 
 function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
   const [imageAspect, setImageAspect] = useState<number | null>(null);
+  const isRTL = /[\u0590-\u05FF]/.test(recipe.name);
+  const f = isRTL ? hebrewFonts : fonts;
 
   useEffect(() => {
     if (recipe.photoUri) {
@@ -42,14 +44,14 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
         </View>
       )}
       <View style={styles.cardBody}>
-        <Text style={styles.cardName} numberOfLines={2}>
+        <Text style={[styles.cardName, { fontFamily: f.serif }]} numberOfLines={2}>
           {recipe.name}
         </Text>
         {recipe.tags.length > 0 && (
           <View style={styles.tags}>
             {recipe.tags.slice(0, 3).map((tag) => (
               <View key={tag} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
+                <Text style={[styles.tagText, { fontFamily: f.sans }]}>{tag}</Text>
               </View>
             ))}
           </View>
@@ -204,5 +206,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sansMedium,
     fontSize: fontSize.base,
     color: colors.white,
+  },
+  rtlText: {
+    writingDirection: 'rtl',
+    textAlign: 'right',
   },
 });

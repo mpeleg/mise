@@ -20,11 +20,11 @@
 
 ### Must Figure Out Before Phase 2
 - [ ] **AI quality bar** — Does Claude structure messy voice memos well enough that editing takes under 2 minutes? If not, tweak the prompt before moving on.
-- [ ] **Image extraction quality** — Does Claude Vision reliably extract ingredients and steps from a photo of a recipe book? Test with 20 real photos before shipping.
+- [x] **Image extraction quality** — Does Claude Vision reliably extract ingredients and steps from a photo of a recipe book? Test with 20 real photos before shipping.
 - [ ] **Recipe data model** — Nail the schema now. Getting this wrong means refactoring everything. Key questions: How are ingredients stored? Are steps ordered objects or free text? How are quantities linked to steps?
-- [ ] **Mobile framework decision** — React Native + Expo vs Flutter vs Swift. One-time foundational call. (See Tech Stack doc.)
+- [x] **Mobile framework decision** — React Native + Expo vs Flutter vs Swift. One-time foundational call. (See Tech Stack doc.)
 - [ ] **Voice transcription service** — Whisper API (OpenAI) vs Deepgram vs on-device. Test with your accent and cooking vocabulary.
-- [ ] **Auth provider** — Supabase Auth vs Firebase Auth. Decide early, hard to migrate.
+- [x] **Auth provider** — Supabase Auth vs Firebase Auth. Decide early, hard to migrate.
 - [ ] **Instagram/TikTok blocking** — These platforms actively block scraping. Decide on approach before building: (a) user copies text and pastes it, (b) browser share sheet extension, (c) official API (limited). Don't build a scraper you'll have to throw away.
 - [ ] **Duplicate detection** — If a user imports the same link or image twice, what happens?
 

@@ -9,3 +9,6 @@
   - a video maker integration or editor ? 
 - recipe content 
   - should add video? 
+  - tags - add colors to choose from ? with food names in the coloring pallet of the app
+- Share
+- cooking mode 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  findNodeHandle,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { colors, fonts, fontSize, radius, spacing } from '../src/theme';
+import { colors, fonts, hebrewFonts, fontSize, radius, spacing } from '../src/theme';
 import { Recipe, Ingredient, Step, Note } from '../src/types';
 import { saveRecipe, generateId } from '../src/store';
 import { extractFromUrl, extractFromImage, downloadImage } from '../src/services/extract';
@@ -52,6 +53,23 @@ export default function ReviewScreen() {
     { id: generateId(), order: 1, text: '' },
   ]);
   const [notes, setNotes] = useState<Note[]>([]);
+  const scrollRef = useRef<ScrollView>(null);
+
+  const scrollToInput = (e: any) => {
+    const target = e.nativeEvent.target || e.target;
+    const scrollNode = findNodeHandle(scrollRef.current);
+    if (!target || !scrollNode) return;
+    // Wait for keyboard to appear before measuring
+    setTimeout(() => {
+      (target as any).measureLayout?.(
+        scrollNode,
+        (_x: number, y: number) => {
+          scrollRef.current?.scrollTo({ y: Math.max(0, y - 120), animated: true });
+        },
+        () => {},
+      );
+    }, 250);
+  };
 
   // Load existing recipe when editing
   useEffect(() => {
@@ -206,6 +224,7 @@ export default function ReviewScreen() {
 
   // Detect if recipe content is primarily Hebrew/RTL
   const isRTL = /[\u0590-\u05FF]/.test(name);
+  const f = isRTL ? hebrewFonts : fonts;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -247,6 +266,7 @@ export default function ReviewScreen() {
         ) : (
         <>
         <ScrollView
+          ref={scrollRef}
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
@@ -266,11 +286,12 @@ export default function ReviewScreen() {
 
           {/* Name */}
           <TextInput
-            style={[styles.nameInput, isRTL && styles.rtlInput]}
+            style={[styles.nameInput, { fontFamily: f.serif }, isRTL && styles.rtlInput]}
             value={name}
             onChangeText={setName}
             placeholder="Recipe name"
             placeholderTextColor={colors.textPlaceholder}
+            onFocus={scrollToInput}
           />
 
           {/* Meta row */}
@@ -283,6 +304,7 @@ export default function ReviewScreen() {
                 onChangeText={setPrepTime}
                 placeholder="e.g. 30 min"
                 placeholderTextColor={colors.textPlaceholder}
+                onFocus={scrollToInput}
               />
             </View>
             <View style={styles.metaField}>
@@ -293,6 +315,7 @@ export default function ReviewScreen() {
                 onChangeText={setServings}
                 placeholder="e.g. 4"
                 placeholderTextColor={colors.textPlaceholder}
+                onFocus={scrollToInput}
               />
             </View>
           </View>
@@ -339,6 +362,7 @@ export default function ReviewScreen() {
                   returnKeyType="done"
                   onSubmitEditing={addTag}
                   blurOnSubmit={false}
+                  onFocus={scrollToInput}
                 />
               </View>
             </View>
@@ -353,18 +377,20 @@ export default function ReviewScreen() {
             {ingredients.map((ing, idx) => (
               <View key={ing.id} style={[styles.ingredientRow, isRTL && styles.rtlRow]}>
                 <TextInput
-                  style={[styles.ingredientName, isRTL && styles.rtlInput]}
+                  style={[styles.ingredientName, { fontFamily: f.sans }, isRTL && styles.rtlInput]}
                   value={ing.name}
                   onChangeText={(v) => updateIngredient(ing.id, 'name', v)}
                   placeholder={`Ingredient ${idx + 1}`}
                   placeholderTextColor={colors.textPlaceholder}
+                  onFocus={scrollToInput}
                 />
                 <TextInput
-                  style={[styles.ingredientQty, isRTL && styles.rtlInput]}
+                  style={[styles.ingredientQty, { fontFamily: f.sans }, isRTL && styles.rtlInput]}
                   value={ing.quantity}
                   onChangeText={(v) => updateIngredient(ing.id, 'quantity', v)}
                   placeholder="Qty"
                   placeholderTextColor={colors.textPlaceholder}
+                  onFocus={scrollToInput}
                 />
                 {ingredients.length > 1 && (
                   <Pressable onPress={() => removeIngredient(ing.id)} hitSlop={8}>
@@ -390,12 +416,13 @@ export default function ReviewScreen() {
                   <Text style={styles.stepNumText}>{step.order}</Text>
                 </View>
                 <TextInput
-                  style={[styles.stepInput, isRTL && styles.rtlInput]}
+                  style={[styles.stepInput, { fontFamily: f.sans }, isRTL && styles.rtlInput]}
                   value={step.text}
                   onChangeText={(v) => updateStep(step.id, v)}
                   placeholder={`Step ${step.order}`}
                   placeholderTextColor={colors.textPlaceholder}
                   multiline
+                  onFocus={scrollToInput}
                 />
                 {steps.length > 1 && (
                   <Pressable onPress={() => removeStep(step.id)} hitSlop={8}>
@@ -418,12 +445,13 @@ export default function ReviewScreen() {
             {notes.map((note) => (
               <View key={note.id} style={styles.noteRow}>
                 <TextInput
-                  style={[styles.noteInput, isRTL && styles.rtlInput]}
+                  style={[styles.noteInput, { fontFamily: f.sans }, isRTL && styles.rtlInput]}
                   value={note.text}
                   onChangeText={(v) => updateNote(note.id, v)}
                   placeholder="Add a note..."
                   placeholderTextColor={colors.textPlaceholder}
                   multiline
+                  onFocus={scrollToInput}
                 />
                 <Pressable onPress={() => removeNote(note.id)} hitSlop={8}>
                   <Ionicons name="remove-circle-outline" size={20} color={colors.textPlaceholder} />

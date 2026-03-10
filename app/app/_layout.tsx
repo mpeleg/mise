@@ -12,6 +12,12 @@ import {
   Lora_600SemiBold,
   Lora_400Regular_Italic,
 } from '@expo-google-fonts/lora';
+import {
+  Heebo_400Regular,
+  Heebo_500Medium,
+  Heebo_600SemiBold,
+  Heebo_700Bold,
+} from '@expo-google-fonts/heebo';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
@@ -26,6 +32,10 @@ export default function RootLayout() {
     Lora_400Regular,
     Lora_600SemiBold,
     Lora_400Regular_Italic,
+    Heebo_400Regular,
+    Heebo_500Medium,
+    Heebo_600SemiBold,
+    Heebo_700Bold,
   });
 
   useEffect(() => {
