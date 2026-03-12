@@ -67,7 +67,7 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadRecipes().then(setRecipes);
+      loadRecipes().then(setRecipes).catch(() => {});
     }, [])
   );
 

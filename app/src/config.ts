@@ -1,7 +1,2 @@
-// For dev: reads from .env via babel transform or fallback
-// Move to Supabase Edge Function for production
-export const ANTHROPIC_API_KEY =
-  process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY || '';
-
-export const GEMINI_API_KEY =
-  process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
+// AI API keys have been moved to Supabase Edge Functions.
+// They are no longer needed on the client.
