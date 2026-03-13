@@ -6,6 +6,7 @@ import {
   FlatList,
   Pressable,
   Image,
+  Alert,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, hebrewFonts, fontSize, radius, spacing } from '../../src/theme';
 import { Recipe } from '../../src/types';
 import { loadRecipes } from '../../src/store';
+import { supabase } from '../../src/lib/supabase';
 
 function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }) {
   const [imageAspect, setImageAspect] = useState<number | null>(null);
@@ -64,6 +66,7 @@ function RecipeCard({ recipe, onPress }: { recipe: Recipe; onPress: () => void }
 export default function HomeScreen() {
   const router = useRouter();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [initial, setInitial] = useState('?');
 
   useFocusEffect(
     useCallback(() => {
@@ -71,10 +74,31 @@ export default function HomeScreen() {
     }, [])
   );
 
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const email = data.user?.email;
+      if (email) setInitial(email[0].toUpperCase());
+    });
+  }, []);
+
+  function handleAvatarPress() {
+    Alert.alert('Account', undefined, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: () => supabase.auth.signOut(),
+      },
+    ]);
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.appName}>mise</Text>
+        <Pressable style={styles.avatar} onPress={handleAvatarPress}>
+          <Text style={styles.avatarText}>{initial}</Text>
+        </Pressable>
       </View>
 
       {recipes.length === 0 ? (
@@ -115,8 +139,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: spacing[20],
     paddingBottom: spacing[16],
+  },
+  avatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: fontSize.sm,
+    color: colors.white,
   },
   appName: {
     fontFamily: fonts.serif,
