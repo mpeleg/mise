@@ -218,7 +218,6 @@ export default function ReviewScreen() {
     };
 
     await saveRecipe(recipe);
-    router.dismissAll();
     router.replace('/');
   };
 

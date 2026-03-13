@@ -19,9 +19,12 @@ function hydrateIds(recipe: ExtractedRecipe): ExtractedRecipe {
     ingredients: recipe.ingredients.map((i) =>
       i.id ? i : { ...i, id: generateId() },
     ),
-    steps: recipe.steps.map((s, idx) =>
-      s.id ? s : { ...s, id: generateId(), order: idx + 1 },
-    ),
+    steps: recipe.steps.map((s, idx) => {
+      if (typeof s === 'string') {
+        return { id: generateId(), order: idx + 1, text: s };
+      }
+      return s.id ? s : { ...s, id: generateId(), order: idx + 1 };
+    }),
   };
 }
 
