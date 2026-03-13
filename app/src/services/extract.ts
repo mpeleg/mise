@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { uploadRemotePhoto } from '../lib/storage';
 import { Ingredient, Step } from '../types';
 import { generateId } from '../store';
 
@@ -36,20 +35,6 @@ export async function extractFromUrl(url: string): Promise<ExtractedRecipe> {
   if (error) throw new Error(`Extraction failed: ${error.message}`);
 
   const recipe = hydrateIds(data as ExtractedRecipe);
-
-  if (recipe.imageUrl) {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        recipe.imageUrl = await uploadRemotePhoto(recipe.imageUrl, user.id);
-      }
-    } catch (e) {
-      console.warn('[extract] Failed to upload recipe image:', e);
-    }
-  }
-
   return recipe;
 }
 
@@ -81,13 +66,4 @@ export async function extractFromImage(
   if (error) throw new Error(`Image extraction failed: ${error.message}`);
 
   return hydrateIds(data as ExtractedRecipe);
-}
-
-// Keep downloadImage exported for any legacy callers; now uploads to Supabase Storage
-export async function downloadImage(remoteUrl: string): Promise<string> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
-  return uploadRemotePhoto(remoteUrl, user.id);
 }

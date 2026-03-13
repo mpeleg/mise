@@ -26,17 +26,14 @@ export async function uploadPhoto(localUri: string, userId: string): Promise<str
 }
 
 export async function uploadRemotePhoto(remoteUrl: string, userId: string): Promise<string> {
-  const res = await fetch(remoteUrl);
-  const blob = await res.blob();
   const ext = remoteUrl.split('.').pop()?.split('?')[0]?.toLowerCase() || 'jpg';
-  const path = `${userId}/${generateId()}.${ext}`;
+  const safeExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
+  const tempPath = FileSystem.cacheDirectory + generateId() + '.' + safeExt;
 
-  const { error } = await supabase.storage
-    .from('recipe-photos')
-    .upload(path, blob, { contentType: blob.type || 'image/jpeg' });
-
-  if (error) throw new Error(`Remote photo upload failed: ${error.message}`);
-
-  const { data } = supabase.storage.from('recipe-photos').getPublicUrl(path);
-  return data.publicUrl;
+  await FileSystem.downloadAsync(remoteUrl, tempPath);
+  try {
+    return await uploadPhoto(tempPath, userId);
+  } finally {
+    FileSystem.deleteAsync(tempPath, { idempotent: true }).catch(() => {});
+  }
 }

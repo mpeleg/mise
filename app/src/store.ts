@@ -1,5 +1,5 @@
 import { supabase } from './lib/supabase';
-import { uploadPhoto } from './lib/storage';
+import { uploadPhoto, uploadRemotePhoto } from './lib/storage';
 import { Recipe, Ingredient, Step, Note } from './types';
 
 // ── ID generator (unchanged) ──────────────────────────────────────────────────
@@ -94,8 +94,15 @@ export async function saveRecipe(recipe: Recipe): Promise<void> {
   let photoUri = recipe.photoUri;
   let sourceImageUri = recipe.sourceImageUri;
 
+  const supabaseHost = 'supabase.co';
   if (photoUri?.startsWith('file://')) {
     photoUri = await uploadPhoto(photoUri, userId);
+  } else if (photoUri?.startsWith('http') && !photoUri.includes(supabaseHost)) {
+    try {
+      photoUri = await uploadRemotePhoto(photoUri, userId);
+    } catch {
+      // keep original URL if upload fails
+    }
   }
   if (sourceImageUri?.startsWith('file://')) {
     sourceImageUri = await uploadPhoto(sourceImageUri, userId);

@@ -114,7 +114,7 @@ export default function ReviewScreen() {
         if (result.ingredients.length > 0) setIngredients(result.ingredients);
         if (result.steps.length > 0) setSteps(result.steps);
 
-        // Auto-populate food photo for link imports (already uploaded in extractFromUrl)
+        // Auto-populate food photo for link imports
         if (source === 'link' && result.imageUrl) {
           setPhotoUri(result.imageUrl);
         }
