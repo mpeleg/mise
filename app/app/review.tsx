@@ -20,7 +20,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { colors, fonts, hebrewFonts, fontSize, radius, spacing } from '../src/theme';
 import { Recipe, Ingredient, Step, Note } from '../src/types';
 import { saveRecipe, generateId } from '../src/store';
-import { extractFromUrl, extractFromImage, downloadImage } from '../src/services/extract';
+import { extractFromUrl, extractFromImage } from '../src/services/extract';
 
 export default function ReviewScreen() {
   const params = useLocalSearchParams<{
@@ -116,12 +116,7 @@ export default function ReviewScreen() {
 
         // Auto-populate food photo for link imports
         if (source === 'link' && result.imageUrl) {
-          try {
-            const localUri = await downloadImage(result.imageUrl);
-            setPhotoUri(localUri);
-          } catch (e) {
-            console.log('[review] Failed to download recipe image:', e);
-          }
+          setPhotoUri(result.imageUrl);
         }
       })
       .catch((err) => {
@@ -218,7 +213,6 @@ export default function ReviewScreen() {
     };
 
     await saveRecipe(recipe);
-    router.dismissAll();
     router.replace('/');
   };
 

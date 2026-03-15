@@ -13,7 +13,8 @@
       "backgroundColor": "#F2EDE5"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mise.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -31,6 +32,12 @@
       "expo-router",
       "expo-font",
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7a424119-4bdc-426f-8cb3-99319a6f1277"
+      }
+    }
   }
 }
