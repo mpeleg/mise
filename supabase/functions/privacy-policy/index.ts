@@ -1,5 +1,3 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-
 const HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,8 +60,8 @@ const HTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
-serve((_req) => {
+Deno.serve((_req) => {
   return new Response(HTML, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    headers: { 'content-type': 'text/html; charset=utf-8' },
   });
 });
