@@ -14,7 +14,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mise.app"
+      "bundleIdentifier": "com.mise.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Mise needs access to your photo library so you can add photos to your recipes.",
+        "NSCameraUsageDescription": "Mise needs access to your camera so you can take photos of your recipes."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -33,6 +37,7 @@
       "expo-font",
       "expo-web-browser"
     ],
+    "privacyUrl": "https://pnnfcdynznvfehabfkjz.supabase.co/functions/v1/privacy-policy",
     "extra": {
       "router": {},
       "eas": {
